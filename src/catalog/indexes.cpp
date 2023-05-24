@@ -39,13 +39,11 @@ uint32_t IndexMetadata::SerializeTo(char *buf) const {
     return ofs;
 }
 
-/* yf */
-//uint32_t IndexMetadata::GetSerializedSize() const {
-//  return 0;
-//}
+/**
+ * TODO: Student Implement
+ */
 uint32_t IndexMetadata::GetSerializedSize() const {
-  return sizeof(INDEX_METADATA_MAGIC_NUM) + sizeof(index_id_) + sizeof(size_t) + sizeof(index_name_.size()) +
-         sizeof(table_id_) + sizeof(size_t) + sizeof(uint32_t) * key_map_.size();
+  return 0;
 }
 
 uint32_t IndexMetadata::DeserializeFrom(char *buf, IndexMetadata *&index_meta) {

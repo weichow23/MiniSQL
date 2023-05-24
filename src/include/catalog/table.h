@@ -73,8 +73,6 @@ class TableInfo {
 
   inline page_id_t GetRootPageId() const { return table_meta_->root_page_id_; }
 
-  inline TableMetadata* GetTableMeta() const{return table_meta_;} //新增，获取table_meta_
-
  private:
   explicit TableInfo(){};
 

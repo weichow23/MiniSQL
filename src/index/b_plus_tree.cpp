@@ -7,9 +7,6 @@
 #include "index/generic_key.h"
 #include "page/index_roots_page.h"
 
-/**
- * TODO: Student Implement
- */
 BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager, const KeyManager &KM,
                      int leaf_max_size, int internal_max_size)
     : index_id_(index_id),
@@ -18,14 +15,21 @@ BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager
       leaf_max_size_(leaf_max_size),
       internal_max_size_(internal_max_size) {
 }
-
 void BPlusTree::Destroy(page_id_t current_page_id) {
 }
 
 /*
  * Helper function to decide whether current b+tree is empty
  */
-bool BPlusTree::IsEmpty() const {
+//bool BPlusTree::IsEmpty() const {
+//  return false;
+//}
+bool BPlusTree::IsEmpty() const
+{
+  if(root_page_id_ == INVALID_PAGE_ID)
+  {
+    return true;
+  }
   return false;
 }
 
@@ -40,7 +44,6 @@ bool BPlusTree::IsEmpty() const {
 bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Transaction *transaction) {
   return false;
 }
-
 /*****************************************************************************
  * INSERTION
  *****************************************************************************/
@@ -54,6 +57,7 @@ bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Tran
 bool BPlusTree::Insert(GenericKey *key, const RowId &value, Transaction *transaction) {
   return false;
 }
+
 /*
  * Insert constant key & value pair into an empty tree
  * User needs to first ask for new page from buffer pool manager(NOTICE: throw
@@ -62,6 +66,7 @@ bool BPlusTree::Insert(GenericKey *key, const RowId &value, Transaction *transac
  */
 void BPlusTree::StartNewTree(GenericKey *key, const RowId &value) {
 }
+
 
 /*
  * Insert constant key & value pair into leaf page

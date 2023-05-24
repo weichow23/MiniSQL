@@ -4,27 +4,35 @@
  * Helper methods to get/set page type
  * Page type enum class is defined in b_plus_tree_page.h
  */
-/**
- * TODO: Student Implement
- */
+/* yf */
+//bool BPlusTreePage::IsLeafPage() const {
+//  return false;
+//}
 bool BPlusTreePage::IsLeafPage() const {
-  return false;
+  if (page_type_ == IndexPageType::LEAF_PAGE)
+    return true;
+  else
+    return false;
 }
 
-/**
- * TODO: Student Implement
- */
+/* yf */
+//bool BPlusTreePage::IsRootPage() const {
+//  return false;
+//}
 bool BPlusTreePage::IsRootPage() const {
-  return false;
+  if (parent_page_id_ == INVALID_FRAME_ID)
+    return true;
+  else
+    return false;
 }
 
-/**
- * TODO: Student Implement
- */
+/* yf */
+//void BPlusTreePage::SetPageType(IndexPageType page_type) {
+//
+//}
 void BPlusTreePage::SetPageType(IndexPageType page_type) {
-
+  page_type_ = page_type;
 }
-
 int BPlusTreePage::GetKeySize() const {
   return key_size_;
 }
@@ -52,39 +60,43 @@ void BPlusTreePage::IncreaseSize(int amount) {
 /*
  * Helper methods to get/set max size (capacity) of the page
  */
-/**
- * TODO: Student Implement
- */
+/* yf */
+//int BPlusTreePage::GetMaxSize() const {
+//  return 0;
+//}
 int BPlusTreePage::GetMaxSize() const {
-  return 0;
+  return max_size_;
 }
 
-/**
- * TODO: Student Implement
- */
+/* yf */
+//void BPlusTreePage::SetMaxSize(int size) {
+//
+//}
 void BPlusTreePage::SetMaxSize(int size) {
-
+  max_size_ = size;
 }
 
 /*
  * Helper method to get min page size
  * Generally, min page size == max page size / 2
  */
-/**
- * TODO: Student Implement
- */
+/* yf */
+//int BPlusTreePage::GetMinSize() const {
+//  return 0;
+//}
 int BPlusTreePage::GetMinSize() const {
-  return 0;
+  return max_size_ / 2;
 }
 
 /*
  * Helper methods to get/set parent page id
  */
-/**
- * TODO: Student Implement
- */
+/* yf */
+//page_id_t BPlusTreePage::GetParentPageId() const {
+//  return INVALID_PAGE_ID;
+//}
 page_id_t BPlusTreePage::GetParentPageId() const {
-  return INVALID_PAGE_ID;
+  return parent_page_id_;
 }
 
 void BPlusTreePage::SetParentPageId(page_id_t parent_page_id) {

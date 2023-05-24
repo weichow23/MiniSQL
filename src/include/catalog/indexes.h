@@ -60,37 +60,21 @@ class IndexInfo {
     delete key_schema_;
   }
 
-/* yf */
-//  void Init(IndexMetadata *meta_data, TableInfo *table_info, BufferPoolManager *buffer_pool_manager) {
-//    // Step1: init index metadata and table info
-//    // Step2: mapping index key to key schema
-//    // Step3: call CreateIndex to create the index
-//    ASSERT(false, "Not Implemented yet.");
-//  }
+/**
+ * TODO: Student Implement
+ */
   void Init(IndexMetadata *meta_data, TableInfo *table_info, BufferPoolManager *buffer_pool_manager) {
     // Step1: init index metadata and table info
-    this->table_info_ = table_info;
-    this->meta_data_ = meta_data;
     // Step2: mapping index key to key schema
-    auto schema = table_info->GetSchema();
-    this->key_schema_ = Schema::ShallowCopySchema(schema, meta_data->key_map_);
     // Step3: call CreateIndex to create the index
-    this->index_ = CreateIndex(buffer_pool_manager,"bptree");
-    // ASSERT(false, "Not Implemented yet.");
+    ASSERT(false, "Not Implemented yet.");
   }
-//  void CreateAndSetIndex(BufferPoolManager *buffer_pool_manager, const string &index_type) {
-//    index_ = CreateIndex(buffer_pool_manager, index_type);
-//  } //使得catalog.cpp中的CreateIndexInfo()函数可以调用CreateIndex()函数
 
   inline Index *GetIndex() { return index_; }
 
   std::string GetIndexName() { return meta_data_->GetIndexName(); }
 
   IndexSchema *GetIndexKeySchema() { return key_schema_; }
-
-  inline TableInfo *GetTableInfo() const { return table_info_; } //新加
-
-  inline size_t getIndexSize() const { return meta_data_->key_map_.size(); } //新加
 
  private:
   explicit IndexInfo() : meta_data_{nullptr}, index_{nullptr}, key_schema_{nullptr} {}
@@ -101,8 +85,6 @@ class IndexInfo {
   IndexMetadata *meta_data_;
   Index *index_;
   IndexSchema *key_schema_;
-
-  TableInfo *table_info_;
 };
 
 #endif  // MINISQL_INDEXES_H
