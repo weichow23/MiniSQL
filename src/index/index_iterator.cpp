@@ -14,13 +14,24 @@ IndexIterator::~IndexIterator() {
   if (current_page_id != INVALID_PAGE_ID)
     buffer_pool_manager->UnpinPage(current_page_id, false);
 }
-
+/* yf 改 */
 std::pair<GenericKey *, RowId> IndexIterator::operator*() {
-  ASSERT(false, "Not implemented yet.");
+//  ASSERT(false, "Not implemented yet.");
+  return page->GetItem(item_index);
 }
-
+/* yf 改 */
 IndexIterator &IndexIterator::operator++() {
-  ASSERT(false, "Not implemented yet.");
+//  ASSERT(false, "Not implemented yet.");
+  item_index++;
+  if (item_index == this->page->GetSize() && this->page->GetNextPageId() != -1) {
+    page_id_t next = page->GetNextPageId();
+    Page *Next_page = this->buffer_pool_manager->FetchPage(next);
+    LeafPage *next_node = reinterpret_cast<LeafPage *>(Next_page);
+    page = next_node;
+    this->buffer_pool_manager->UnpinPage(Next_page->GetPageId(), false);
+    item_index = 0;
+  }
+  return *this;
 }
 
 bool IndexIterator::operator==(const IndexIterator &itr) const {
