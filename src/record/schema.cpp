@@ -28,20 +28,15 @@ uint32_t Schema::GetSerializedSize() const {
 uint32_t Schema::DeserializeFrom(char *buf, Schema *&schema) {
   auto num = MACH_READ_FROM(uint32_t, buf);
   ASSERT(num == Schema::SCHEMA_MAGIC_NUM, "Schema magic num error.");
-
   uint32_t offset = sizeof(uint32_t);
-
   auto col_size = MACH_READ_UINT32(buf + offset);
   offset += sizeof(uint32_t);
-
   std::vector<Column *> columns;
   for (auto i = 0u; i < col_size; i++) {
     Column *col;
     offset += Column::DeserializeFrom(buf + offset, col);
     columns.push_back(col);
   }
-
   schema = new Schema(columns);
-
   return offset;
 }

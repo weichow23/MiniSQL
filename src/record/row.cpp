@@ -6,25 +6,18 @@ uint32_t Row::SerializeTo(char *buf, Schema *schema) const {
   ASSERT(schema->GetColumnCount() == fields_.size(), "Fields size do not match schema's column size.");
   uint32_t offset = 0;
   // write row id
-
-  // buf[0] = 16;
-
   MACH_WRITE_TO(RowId, buf + offset, rid_);
-  // assert(false);
-
   offset += sizeof(RowId);
   // write fields
   uint32_t column_count = schema->GetColumnCount();
   uint32_t i = 0;
   // assert(false);
-  for(i=0;i<column_count;i++)
-  {
+  for(i=0;i<column_count;i++){
     MACH_WRITE_TO(bool,buf+offset,fields_[i]->IsNull());
     offset += sizeof(bool);
     // if(fields_[i]->IsNull()) continue;
     offset += fields_[i]->SerializeTo(buf+offset);
   }
-
   return offset;
 }
 /*Row 反序列化*/

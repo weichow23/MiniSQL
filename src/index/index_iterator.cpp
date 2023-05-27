@@ -14,14 +14,12 @@ IndexIterator::~IndexIterator() {
   if (current_page_id != INVALID_PAGE_ID)
     buffer_pool_manager->UnpinPage(current_page_id, false);
 }
-/* yf 改 */
+/* IndexIterator */
 std::pair<GenericKey *, RowId> IndexIterator::operator*() {
-//  ASSERT(false, "Not implemented yet.");
   return page->GetItem(item_index);
 }
-/* yf 改 */
+/* IndexIterator */
 IndexIterator &IndexIterator::operator++() {
-//  ASSERT(false, "Not implemented yet.");
   item_index++;
   if (item_index == this->page->GetSize() && this->page->GetNextPageId() != -1) {
     page_id_t next = page->GetNextPageId();

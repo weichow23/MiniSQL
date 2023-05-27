@@ -49,37 +49,28 @@ void DiskManager::WritePage(page_id_t logical_page_id, const char *page_data) {
 page_id_t DiskManager::AllocatePage() {
   DiskFileMetaPage *meta_page = reinterpret_cast<DiskFileMetaPage *>(meta_data_);
   uint32_t extents_nums = meta_page->GetExtentNums();
-
   uint32_t i, j;
   for (i = 0; i < extents_nums; i++) {
     if (meta_page->extent_used_page_[i] < DiskManager::BITMAP_SIZE) break;
   }
-
   char buf[PAGE_SIZE];
-
   if (i == extents_nums && i == (PAGE_SIZE - 8) / 4) return INVALID_PAGE_ID;
   if (i == extents_nums && i != (PAGE_SIZE - 8) / 4) {
     meta_page->num_allocated_pages_++;
     meta_page->num_extents_++;
     meta_page->extent_used_page_[i] = 1;
-
     memset(buf, 0, PAGE_SIZE);
     BitmapPage<PAGE_SIZE> *bitmap = reinterpret_cast<BitmapPage<PAGE_SIZE> *>(buf);
-
     uint32_t ofs = 0;
     bitmap->AllocatePage(ofs);
-
     WritePhysicalPage(1 + i * (DiskManager::BITMAP_SIZE + 1), buf);
     return meta_page->num_allocated_pages_ - 1;
   }
-
   ReadPhysicalPage(1 + i * (DiskManager::BITMAP_SIZE + 1), buf);
   BitmapPage<PAGE_SIZE> *bitmap = reinterpret_cast<BitmapPage<PAGE_SIZE> *>(buf);
-
   for (j = 0; j < bitmap->GetMaxSupportedSize(); j++) {
     if (bitmap->IsPageFree(j)) break;
   }
-
   meta_page->num_allocated_pages_++;
   meta_page->extent_used_page_[i]++;
   //  bitmap->AllocatePage(bitmap->next_free_page_);
@@ -90,7 +81,6 @@ page_id_t DiskManager::AllocatePage() {
 
 /*释放磁盘中逻辑页号对应的物理页*/
 void DiskManager::DeAllocatePage(page_id_t logical_page_id) {
-  //    ASSERT(false, "Not implemented yet.");
   if (IsPageFree(logical_page_id))
     return;
   else {
@@ -98,7 +88,6 @@ void DiskManager::DeAllocatePage(page_id_t logical_page_id) {
     char buf[PAGE_SIZE];
     ReadPhysicalPage(1 + logical_page_id / DiskManager::BITMAP_SIZE * (DiskManager::BITMAP_SIZE + 1), buf);
     BitmapPage<PAGE_SIZE> *bitmap = reinterpret_cast<BitmapPage<PAGE_SIZE> *>(buf);
-
     uint32_t page_id = logical_page_id % DiskManager::BITMAP_SIZE;
     meta_page->num_allocated_pages_--;
     meta_page->extent_used_page_[logical_page_id / DiskManager::BITMAP_SIZE]--;
@@ -130,9 +119,9 @@ void DiskManager::ReadPhysicalPage(page_id_t physical_page_id, char *page_data) 
   int offset = physical_page_id * PAGE_SIZE;
   // check if read beyond file length
   if (offset >= GetFileSize(file_name_)) {
-#ifdef ENABLE_BPM_DEBUG
-    LOG(INFO) << "Read less than a page" << std::endl;
-#endif
+    //#ifdef ENABLE_BPM_DEBUG
+    //    LOG(INFO) << "Read less than a page" << std::endl;
+    //#endif
     memset(page_data, 0, PAGE_SIZE);
   } else {
     // set read cursor to offset
@@ -141,9 +130,9 @@ void DiskManager::ReadPhysicalPage(page_id_t physical_page_id, char *page_data) 
     // if file ends before reading PAGE_SIZE
     int read_count = db_io_.gcount();
     if (read_count < PAGE_SIZE) {
-#ifdef ENABLE_BPM_DEBUG
-      LOG(INFO) << "Read less than a page" << std::endl;
-#endif
+      //#ifdef ENABLE_BPM_DEBUG
+      //      LOG(INFO) << "Read less than a page" << std::endl;
+      //#endif
       memset(page_data + read_count, 0, PAGE_SIZE - read_count);
     }
   }

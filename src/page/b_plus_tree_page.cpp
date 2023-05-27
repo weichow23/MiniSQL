@@ -4,10 +4,7 @@
  * Helper methods to get/set page type
  * Page type enum class is defined in b_plus_tree_page.h
  */
-/* yf */
-//bool BPlusTreePage::IsLeafPage() const {
-//  return false;
-//}
+/* IsLeafPage() */
 bool BPlusTreePage::IsLeafPage() const {
   if (page_type_ == IndexPageType::LEAF_PAGE)
     return true;
@@ -15,10 +12,7 @@ bool BPlusTreePage::IsLeafPage() const {
     return false;
 }
 
-/* yf */
-//bool BPlusTreePage::IsRootPage() const {
-//  return false;
-//}
+/* IsRootPage */
 bool BPlusTreePage::IsRootPage() const {
   if (parent_page_id_ == INVALID_FRAME_ID)
     return true;
@@ -26,10 +20,7 @@ bool BPlusTreePage::IsRootPage() const {
     return false;
 }
 
-/* yf */
-//void BPlusTreePage::SetPageType(IndexPageType page_type) {
-//
-//}
+/* SetPageType */
 void BPlusTreePage::SetPageType(IndexPageType page_type) {
   page_type_ = page_type;
 }
@@ -60,18 +51,12 @@ void BPlusTreePage::IncreaseSize(int amount) {
 /*
  * Helper methods to get/set max size (capacity) of the page
  */
-/* yf */
-//int BPlusTreePage::GetMaxSize() const {
-//  return 0;
-//}
+/* GetMaxSize() */
 int BPlusTreePage::GetMaxSize() const {
   return max_size_;
 }
 
-/* yf */
-//void BPlusTreePage::SetMaxSize(int size) {
-//
-//}
+/* SetMaxSize */
 void BPlusTreePage::SetMaxSize(int size) {
   max_size_ = size;
 }
@@ -80,10 +65,7 @@ void BPlusTreePage::SetMaxSize(int size) {
  * Helper method to get min page size
  * Generally, min page size == max page size / 2
  */
-/* yf */
-//int BPlusTreePage::GetMinSize() const {
-//  return 0;
-//}
+/* GetMinSize */
 int BPlusTreePage::GetMinSize() const {
   return max_size_ / 2;
 }
@@ -91,10 +73,7 @@ int BPlusTreePage::GetMinSize() const {
 /*
  * Helper methods to get/set parent page id
  */
-/* yf */
-//page_id_t BPlusTreePage::GetParentPageId() const {
-//  return INVALID_PAGE_ID;
-//}
+/* GetParentPageId */
 page_id_t BPlusTreePage::GetParentPageId() const {
   return parent_page_id_;
 }

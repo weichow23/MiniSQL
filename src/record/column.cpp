@@ -73,16 +73,13 @@ uint32_t Column::DeserializeFrom(char *buf, Column *&column) {
   ASSERT(magic_num == COLUMN_MAGIC_NUM, "Column magic num error.");
 
   uint32_t offset = sizeof(uint32_t);
-
   auto len = MACH_READ_UINT32(buf + offset);
   offset += sizeof(uint32_t);
-
   char tmp[len / sizeof(char) + 1];
   memset(tmp, '\0', sizeof(tmp));
   memcpy(tmp, buf + offset, len);
   auto name_(tmp);
   offset += len;
-
   auto type_ = MACH_READ_FROM(TypeId, buf + offset);
   offset += sizeof(TypeId);
   auto len_ = MACH_READ_FROM(TypeId, buf + offset);
@@ -93,8 +90,8 @@ uint32_t Column::DeserializeFrom(char *buf, Column *&column) {
   offset += sizeof(bool);
   auto unique_ = MACH_READ_FROM(bool, buf + offset);
   offset += sizeof(bool);
-
-  if (type_ == kTypeChar) {  // not char type
+  // not char type
+  if (type_ == kTypeChar) {
     column = new Column(name_, type_, len_, table_ind_, nullable_, unique_);
   } else {
     column = new Column(name_, type_, table_ind_, nullable_, unique_);
