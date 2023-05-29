@@ -25,11 +25,12 @@ uint32_t TableMetadata::SerializeTo(char *buf) const {
 }
 
 
-/**
- * TODO: Student Implement
- */
+//uint32_t TableMetadata::GetSerializedSize() const {
+//  return 0;
+//}
 uint32_t TableMetadata::GetSerializedSize() const {
-  return 0;
+  // magic_number(4)+table_id_t(4)+table_name_(MACH_STR_SERIALIZED_SIZE(table_name_))+root_page_id_(4)
+  return 12 + MACH_STR_SERIALIZED_SIZE(table_name_) + schema_->GetSerializedSize();
 }
 
 uint32_t TableMetadata::DeserializeFrom(char *buf, TableMetadata *&table_meta) {

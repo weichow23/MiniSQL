@@ -60,14 +60,25 @@ class IndexInfo {
     delete key_schema_;
   }
 
-/**
- * TODO: Student Implement
- */
+  /* 初始化 */
   void Init(IndexMetadata *meta_data, TableInfo *table_info, BufferPoolManager *buffer_pool_manager) {
     // Step1: init index metadata and table info
+    meta_data_ = meta_data;
+    table_info_ = table_info;
     // Step2: mapping index key to key schema
+    vector<uint32_t> column_index;
+    // 将metadata中的key_schema(即需要作为索引的Key)push到到column_index中
+    for (auto &key_index : meta_data->GetKeyMapping()) {
+      column_index.push_back(key_index);
+    }
+    key_schema_ = Schema::ShallowCopySchema(table_info_->GetSchema(), column_index);
     // Step3: call CreateIndex to create the index
-    ASSERT(false, "Not Implemented yet.");
+    index_ = CreateIndex(buffer_pool_manager,"bptree");
+
+    // 这块暂时不应该存在。如果是重新读取Index的话，那就会导致在原有的Index上重新InsertEntry
+    // 或许有关这一块的处理得加载CatalogManager::CreateIndex那里
+    // 目前的状态就是：索引必须在table刚创建的时候创建，不然table中原有的数据不会纳入索引
+    // 把整个table InsertEntry
   }
 
   inline Index *GetIndex() { return index_; }
@@ -85,6 +96,8 @@ class IndexInfo {
   IndexMetadata *meta_data_;
   Index *index_;
   IndexSchema *key_schema_;
+
+  TableInfo *table_info_;
 };
 
 #endif  // MINISQL_INDEXES_H
