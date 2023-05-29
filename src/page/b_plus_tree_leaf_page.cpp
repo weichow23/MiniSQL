@@ -150,11 +150,26 @@ void LeafPage::CopyNFrom(void *src, int size) {
  */
 /* Lookup */
 bool LeafPage::Lookup(const GenericKey *key, RowId &value, const KeyManager &KM) {
-  int size = GetSize();
-  int now_key = KeyIndex(key, KM);
-  if (now_key < size && KM.CompareKeys(key, KeyAt(now_key)) == 0) {
-    value = ValueAt(now_key);
-    return true;
+//  int size = GetSize();
+//  int now_key = KeyIndex(key, KM);
+//  if (now_key < size && KM.CompareKeys(key, KeyAt(now_key)) == 0) {
+//    value = ValueAt(now_key);
+//    return true;
+//  }
+//  return false;
+  // 优化为二分查找
+  int left = 0;
+  int right = GetSize() - 1;
+  while (left <= right) {
+    int mid = (left + right) / 2;
+    if (KM.CompareKeys(key, KeyAt(mid)) == 0) {
+      value = ValueAt(mid);
+      return true;
+    } else if (KM.CompareKeys(key, KeyAt(mid)) > 0) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
   }
   return false;
 }

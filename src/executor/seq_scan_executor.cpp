@@ -11,8 +11,13 @@ SeqScanExecutor::SeqScanExecutor(ExecuteContext *exec_ctx, const SeqScanPlanNode
       plan_(plan){}
 
 void SeqScanExecutor::Init() {
+
 }
 
 bool SeqScanExecutor::Next(Row *row, RowId *rid) {
+//  auto predicate = plan_->GetPredicate();
+//  if(predicate == nullptr){
+//    iterator++;
+//  }
   return false;
 }

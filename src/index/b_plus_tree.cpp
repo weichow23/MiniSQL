@@ -73,7 +73,7 @@ bool BPlusTree::IsEmpty() const {
 /* GetValue */
 bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Transaction *transaction) {
   if (IsEmpty()) return false;
-  Page *page = FindLeafPage(key, false);
+  Page *page = FindLeafPage(key, root_page_id_, false); //TODO: 我直接从根节点开始传的
   LeafPage *mypage = reinterpret_cast<LeafPage *>(page->GetData());
   RowId v;
   if (mypage == nullptr) return false;
@@ -83,7 +83,6 @@ bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Tran
     buffer_pool_manager_->UnpinPage(mypage->GetPageId(), false);
   }
   return myresult;
-  //return false;
 }
 /*****************************************************************************
  * INSERTION
@@ -137,7 +136,7 @@ void BPlusTree::StartNewTree(GenericKey *key, const RowId &value) {
  */
 /* InsertIntoLeaf */
 bool BPlusTree::InsertIntoLeaf(GenericKey *key, const RowId &value, Transaction *transaction) {
-  Page *page = FindLeafPage(key, false);
+  Page *page = FindLeafPage(key, root_page_id_,false);
   RowId v;
   LeafPage *leafPage = reinterpret_cast<LeafPage *>(page->GetData());
   bool myresult = leafPage->Lookup(key, v, processor_);
@@ -249,7 +248,7 @@ void BPlusTree::InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlus
 void BPlusTree::Remove(const GenericKey *key, Transaction *transaction) {
   if (IsEmpty())
     return;
-  Page *page = FindLeafPage(key, false);
+  Page *page = FindLeafPage(key, root_page_id_,false);
   LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
   leaf->RemoveAndDeleteRecord(key, processor_);
   CoalesceOrRedistribute(leaf, transaction);
@@ -454,7 +453,7 @@ IndexIterator BPlusTree::Begin() {
  */
 // TODO: 感觉这个有问题
 IndexIterator BPlusTree::Begin(const GenericKey *key) {
-  Page *page = FindLeafPage(key, false);
+  Page *page = FindLeafPage(key, root_page_id_,false);
   LeafPage *page_leaf = reinterpret_cast<LeafPage *>(page->GetData());
   int index = page_leaf->KeyIndex(key, processor_);
   buffer_pool_manager_->UnpinPage(page_leaf->GetPageId(), false);
@@ -487,10 +486,11 @@ IndexIterator BPlusTree::End() {
  * Find leaf page containing particular key, if leftMost flag == true, find
  * the left most leaf page
  * Note: the leaf page is pinned, you need to unpin it after use.
+ * 意思是如果leftMost，那么只返回最最左边的那一片叶子page，否则就是正常的全局搜索
+ * 注意，这里并不需要查找key是否确切存在，只需要返回可能的那片叶子
  */
-// TODO: 感觉这个有问题
 Page *BPlusTree::FindLeafPage(const GenericKey *key, page_id_t page_id, bool leftMost) {
-  Page *page = buffer_pool_manager_->FetchPage(page_id);  // now root page is pin
+  Page *page = buffer_pool_manager_->FetchPage(page_id);
   BPlusTreePage *node = reinterpret_cast<BPlusTreePage *>(page);
   while (!node->IsLeafPage()) {
     InternalPage *internal_node = reinterpret_cast<InternalPage *>(node);

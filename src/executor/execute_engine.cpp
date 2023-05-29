@@ -336,21 +336,21 @@ dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context
   return DB_FAILED;
 }
 
-
+/*事务相关，可不实现*/
 dberr_t ExecuteEngine::ExecuteTrxBegin(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteTrxBegin" << std::endl;
 #endif
   return DB_FAILED;
 }
-
+/*事务相关，可不实现*/
 dberr_t ExecuteEngine::ExecuteTrxCommit(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteTrxCommit" << std::endl;
 #endif
   return DB_FAILED;
 }
-
+/*事务相关，可不实现*/
 dberr_t ExecuteEngine::ExecuteTrxRollback(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteTrxRollback" << std::endl;
