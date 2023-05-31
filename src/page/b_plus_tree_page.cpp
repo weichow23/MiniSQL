@@ -67,7 +67,11 @@ void BPlusTreePage::SetMaxSize(int size) {
  */
 /* GetMinSize */
 int BPlusTreePage::GetMinSize() const {
-  return max_size_ / 2;
+//  return max_size_ / 2;
+  if(IsRootPage())
+    return IsLeafPage()?1:2;
+  else
+    return (max_size_+1)/2;
 }
 
 /*
@@ -94,7 +98,7 @@ void BPlusTreePage::SetPageId(page_id_t page_id) {
 }
 
 /*
- * Helper methods to set lsn
+ * Helper methods to set lsn  数据页的日志序列号，我不会用到
  */
 void BPlusTreePage::SetLSN(lsn_t lsn) {
   lsn_ = lsn;

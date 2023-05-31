@@ -9,5 +9,5 @@ MESSAGE(STATUS "Source file lists: ${MAIN_SOURCES}")
 ADD_LIBRARY(zSql SHARED ${MAIN_SOURCES})
 TARGET_LINK_LIBRARIES(zSql glog)
 
-ADD_EXECUTABLE(main main.cpp include/catalog/indexes.h)
+ADD_EXECUTABLE(main main.cpp)
 TARGET_LINK_LIBRARIES(main glog zSql)
