@@ -1,6 +1,3 @@
-//
-// Created by njz on 2023/1/17.
-//
 #include "executor/executors/seq_scan_executor.h"
 
 /**

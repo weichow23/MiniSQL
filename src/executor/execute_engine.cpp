@@ -236,54 +236,95 @@ void ExecuteEngine::ExecuteInformation(dberr_t result) {
       break;
   }
 }
-/**
- * TODO: Student Implement
- */
+/* ExecuteCreateDatabase */
 dberr_t ExecuteEngine::ExecuteCreateDatabase(pSyntaxNode ast, ExecuteContext *context) {
+  string DatabaseName = ast->child_->val_;
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateDatabase" << std::endl;
 #endif
-  return DB_FAILED;
+  long time_start = clock();
+  if (dbs_.find(DatabaseName) != dbs_.end()) {
+    cout << "Error: Database " << DatabaseName << " already exists." << endl;
+    return DB_FAILED;
+  }
+  dbs_.insert(std::make_pair(DatabaseName, new DBStorageEngine(DatabaseName)));
+  long time_end = clock();
+  cout << "Database " << DatabaseName << " created." << "  (" << (double)(time_end - time_start)/CLOCKS_PER_SEC  << " sec)" << endl;
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
+/* ExecuteDropDatabase */
 dberr_t ExecuteEngine::ExecuteDropDatabase(pSyntaxNode ast, ExecuteContext *context) {
+ string DatabaseName = ast->child_->val_;
 #ifdef ENABLE_EXECUTE_DEBUG
-  LOG(INFO) << "ExecuteDropDatabase" << std::endl;
+ LOG(INFO) << "ExecuteDropDatabase" << std::endl;
 #endif
- return DB_FAILED;
+ long time_start = clock();
+ if (dbs_.find(DatabaseName) == dbs_.end()) {
+    cout << "Error: Database " << DatabaseName << " does not exist." << endl;
+    return DB_FAILED;
+ }
+ delete dbs_[DatabaseName];
+ dbs_.erase(DatabaseName);
+ long time_end = clock();
+ cout << "Database " << DatabaseName << " dropped." << "  (" << (double)(time_end - time_start)/CLOCKS_PER_SEC  << " sec)" << endl;
+ return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
+/* ExecuteShowDatabases */
 dberr_t ExecuteEngine::ExecuteShowDatabases(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowDatabases" << std::endl;
 #endif
-  return DB_FAILED;
+  long time_start = clock();
+  if (dbs_.empty()) {
+    cout << "No database exists." << endl;
+    return DB_SUCCESS;
+  }
+  int count = 0;
+  for (auto &db : dbs_) {
+    cout << db.first << endl;
+    count++;
+  }
+  long time_end = clock();
+  cout << "Showed "<< count << " databases. (" << (double)(time_end - time_start)/CLOCKS_PER_SEC  << " sec)" << endl;
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
+/* ExecuteUseDatabase */
 dberr_t ExecuteEngine::ExecuteUseDatabase(pSyntaxNode ast, ExecuteContext *context) {
+  string DatabaseName = ast->child_->val_;
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteUseDatabase" << std::endl;
 #endif
-  return DB_FAILED;
+  if (dbs_.find(DatabaseName) == dbs_.end()) {
+    cout << "Error: Database " << DatabaseName << " does not exist." << endl;
+    return DB_FAILED;
+  }
+  current_db_ = DatabaseName;
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
+/* ExecuteCreateTable */
 dberr_t ExecuteEngine::ExecuteShowTables(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowTables" << std::endl;
 #endif
-  return DB_FAILED;
+  long time_start = clock();
+  int count = 0;
+  vector<TableInfo *> tables;
+  dbs_[current_db_]->catalog_mgr_->GetTables(tables);
+  if (tables.empty()) {
+    cout << "No table exists." << endl;
+    return DB_SUCCESS;
+  }
+  for (auto &table : tables) {
+    cout << table->GetTableName() << endl;
+    count++;
+  }
+  long time_end = clock();
+  cout << "Showed "<< count << " tables. (" << (double)(time_end - time_start)/CLOCKS_PER_SEC  << " sec)" << endl;
+  return DB_SUCCESS;
 }
 
 /**
@@ -296,14 +337,22 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
   return DB_FAILED;
 }
 
-/**
- * TODO: Student Implement
- */
+/* ExecuteDropTable */
 dberr_t ExecuteEngine::ExecuteDropTable(pSyntaxNode ast, ExecuteContext *context) {
+ string TableName = ast->child_->val_;   //drop table <表名>
 #ifdef ENABLE_EXECUTE_DEBUG
-  LOG(INFO) << "ExecuteDropTable" << std::endl;
+ LOG(INFO) << "ExecuteShowTables" << std::endl;
 #endif
- return DB_FAILED;
+ long time_start = clock();
+ dberr_t ret = dbs_[current_db_]->catalog_mgr_->DropTable(TableName);
+ if(ret==DB_TABLE_NOT_EXIST){
+    cout << "Error: Can't find " << TableName << "." << endl;
+    return DB_TABLE_NOT_EXIST;
+ }
+ assert(ret == DB_SUCCESS);
+ long time_end = clock();
+ cout << "Table " << TableName << " dropped. (" << (time_end - time_start)*1.0/CLOCKS_PER_SEC  << " sec)" << endl;
+ return DB_SUCCESS;
 }
 
 /**
@@ -316,6 +365,7 @@ dberr_t ExecuteEngine::ExecuteShowIndexes(pSyntaxNode ast, ExecuteContext *conte
   return DB_FAILED;
 }
 
+
 /**
  * TODO: Student Implement
  */
@@ -325,6 +375,7 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
 #endif
   return DB_FAILED;
 }
+
 
 /**
  * TODO: Student Implement
