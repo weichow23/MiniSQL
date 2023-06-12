@@ -8,6 +8,7 @@
 #include <queue>
 #include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 #include "buffer/replacer.h"
 #include "common/config.h"
@@ -18,6 +19,8 @@ using namespace std;
  * CLOCKReplacer implements the clock replacement.
  */
 class CLOCKReplacer : public Replacer {
+ private:
+  enum class State { EMPTY, USED, UNUSED };
  public:
   /**
    * Create a new CLOCKReplacer.
@@ -37,11 +40,13 @@ class CLOCKReplacer : public Replacer {
   void Unpin(frame_id_t frame_id) override;
 
   size_t Size() override;
+ private:
+  static bool IsEmpty(CLOCKReplacer::State &);
 
  private:
   size_t capacity;
   list<frame_id_t> clock_list;               // replacer中可以被替换的数据页
-  map<frame_id_t, frame_id_t> clock_status;  // 数据页的存储状态
+  map<frame_id_t, State> clock_status;  // 数据页的存储状态
 };
 
 #endif  // MINISQL_CLOCK_REPLACER_H
