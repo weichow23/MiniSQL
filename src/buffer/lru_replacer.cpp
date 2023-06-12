@@ -4,9 +4,8 @@ LRUReplacer::LRUReplacer(size_t num_pages){}
 
 LRUReplacer::~LRUReplacer() = default;
 
-/*替换（即删除）与所有被跟踪的页相比最近最少被访问的页，
- * 将其页帧号（即数据页在Buffer Pool的Page数组中的下标）
- * 存储在输出参数frame_id中输出并返回true，如果当前没有可以替换的元素则返回false*/
+/* 将其页帧号（即数据页在Buffer Pool的Page数组中的下标）
+ * 存储在输出参数frame_id中输出并返回true*/
 bool LRUReplacer::Victim(frame_id_t *frame_id) {
   // Check if the list is empty, if not assign the least recently used frame to frame_id
   if (!victims_.empty()) {
@@ -15,7 +14,7 @@ bool LRUReplacer::Victim(frame_id_t *frame_id) {
     victims_.pop_back();  // 从list中删除
     return true;
   }
-  // throw std:: runtime_error("No victim found");
+  LOG(ERROR) << "No victim found"<<endl;
   return false;
 }
 /*将数据页固定使之不能被Replacer替换，即从lru_list_中移除该数据页对应的页帧
