@@ -1,57 +1,8 @@
-//#include "storage/table_iterator.h"
-//
-//#include "common/macros.h"
-//#include "storage/table_heap.h"
-//
-///**
-// * TODO: Student Implement
-// */
-//TableIterator::TableIterator() {
-//
-//}
-//
-//TableIterator::TableIterator(const TableIterator &other) {
-//
-//}
-//
-//TableIterator::~TableIterator() {
-//
-//}
-//
-//bool TableIterator::operator==(const TableIterator &itr) const {
-//  return false;
-//}
-//
-//bool TableIterator::operator!=(const TableIterator &itr) const {
-//  return false;
-//}
-//
-//const Row &TableIterator::operator*() {
-//  ASSERT(false, "Not implemented yet.");
-//}
-//
-//Row *TableIterator::operator->() {
-//  return nullptr;
-//}
-//
-//TableIterator &TableIterator::operator=(const TableIterator &itr) noexcept {
-//  ASSERT(false, "Not implemented yet.");
-//}
-//
-//// ++iter
-//TableIterator &TableIterator::operator++() {
-//  return *this;
-//}
-//
-//// iter++
-//TableIterator TableIterator::operator++(int) {
-//  return TableIterator();
-//}
-
 #include "storage/table_iterator.h"
 #include "common/macros.h"
 #include "storage/table_heap.h"
 
+// 注意，我修改了构造函数的参数
 TableIterator::TableIterator(TableHeap *t, RowId rid) : table_heap_(t) {
   if (rid.GetPageId() != INVALID_PAGE_ID) {
     row_ = new Row(rid);
@@ -76,11 +27,10 @@ bool TableIterator::operator==(const TableIterator &itr) const {
 
     return false;
   }
-  else if(itr.row_->GetRowId().GetPageId()==row_->GetRowId().GetPageId()
-           &&row_->GetRowId().GetSlotNum()==itr.row_->GetRowId().GetSlotNum()){
+  else if(itr.row_->GetRowId().GetPageId()==row_->GetRowId().GetPageId()&&row_->GetRowId().GetSlotNum()==itr.row_->GetRowId().GetSlotNum()){
     return true;
   }
-  else {
+  else{
     return false;
   }
 }
@@ -92,8 +42,7 @@ bool TableIterator::operator!=(const TableIterator &itr) const {
   else if(itr.row_->GetRowId()==INVALID_ROWID||row_->GetRowId()==INVALID_ROWID){
     return true;
   }
-  else if(itr.row_->GetRowId().GetPageId()==row_->GetRowId().GetPageId()
-           &&row_->GetRowId().GetSlotNum()==itr.row_->GetRowId().GetSlotNum()){
+  else if(itr.row_->GetRowId().GetPageId()==row_->GetRowId().GetPageId()&&row_->GetRowId().GetSlotNum()==itr.row_->GetRowId().GetSlotNum()){
     return false;
   }
   else {
@@ -101,45 +50,45 @@ bool TableIterator::operator!=(const TableIterator &itr) const {
   }
 }
 
-const Row &TableIterator::operator*() { return *(row_); }
+const Row &TableIterator::operator*(){
+    return *(row_);
+}
 
-Row *TableIterator::operator->() { return row_; }
+Row *TableIterator::operator->(){
+    return row_;
+}
 
 TableIterator &TableIterator::operator++() {
-  // 如果当前已经是非法的iter，则返回nullptr构成的
-  if (row_ == nullptr || row_->GetRowId() == INVALID_ROWID) {
+  if (row_ == nullptr||row_->GetRowId() == INVALID_ROWID) {
     delete row_;
     row_ = new Row(INVALID_ROWID);
     return *this;
   }
-  // 先找本页之后的row
   auto page = reinterpret_cast<TablePage *>(table_heap_->buffer_pool_manager_->FetchPage(row_->GetRowId().GetPageId()));
-  RowId new_id;
+  RowId id_new;
   page->RLatch();
-  // 如果能找到则直接读
-  if (page->GetNextTupleRid(row_->GetRowId(), &new_id)) {
+  if (page->GetNextTupleRid(row_->GetRowId(), &id_new)) { // 直接找到了那么就直接读取
     delete row_;
-    row_ = new Row(new_id);
+    row_ = new Row(id_new);
     if (*this != table_heap_->End()) {
       table_heap_->GetTuple(row_, nullptr);
     }
     page->RUnlatch();
     table_heap_->buffer_pool_manager_->UnpinPage(row_->GetRowId().GetPageId(), false);
-  } else {
-    // 本页没有合适的，去找下一页直到找到可以用的页
+  }
+  else { // 本页没有合适的，去找下一页
     page_id_t next_page_id = page->GetNextPageId();
+    // 搜索，直到最后一页
     while (next_page_id != INVALID_PAGE_ID) {
-      // 还没到最后一页
       auto new_page = reinterpret_cast<TablePage *>(table_heap_->buffer_pool_manager_->FetchPage(next_page_id));
       page->RUnlatch();
       table_heap_->buffer_pool_manager_->UnpinPage(row_->GetRowId().GetPageId(), false);
       page = new_page;
       page->RLatch();
-      if (page->GetFirstTupleRid(&new_id)) {
-        // 如果找到可用的tuple则跳出循环并读这个tuple
+      if (page->GetFirstTupleRid(&id_new)) {
         delete row_;
-        row_ = new Row(new_id);
-        break;
+        row_ = new Row(id_new);
+        break; // 找到了就退出
       }
       next_page_id = page->GetNextPageId();
     }
@@ -155,11 +104,13 @@ TableIterator &TableIterator::operator++() {
   }
   return *this;
 }
+
 TableIterator TableIterator::operator++(int) {
   TableIterator p(table_heap_, row_->GetRowId());
   ++(*this);
   return TableIterator{p};
 }
+
 // TODO:
 TableIterator &TableIterator::operator=(const TableIterator &itr) noexcept {
   table_heap_ = itr.table_heap_;

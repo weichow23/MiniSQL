@@ -37,10 +37,9 @@ Column::Column(const Column *other)
 
 /*Colunm 序列化*/
 uint32_t Column::SerializeTo(char *buf) const {
-  uint32_t offset = 0, len;
+  uint32_t offset = 0, len= name_.size() * sizeof(char);
   MACH_WRITE_TO(uint32_t, buf, COLUMN_MAGIC_NUM);
   offset += sizeof(uint32_t);
-  len = name_.size() * sizeof(char);  // bytes of string
   memcpy(buf + offset, &len, sizeof(uint32_t));
   offset += sizeof(uint32_t);
   memcpy(buf + offset, name_.c_str(), len);
@@ -55,7 +54,6 @@ uint32_t Column::SerializeTo(char *buf) const {
   offset += sizeof(bool);
   MACH_WRITE_TO(bool, buf + offset, unique_);
   offset += sizeof(bool);
-
   return offset;
 }
 

@@ -18,9 +18,6 @@
 #include <algorithm>
 
 
-
-// @wjf 2023.6.3 太折磨了，要死了，一大堆代码一环套一环的，看了两天才看懂什么是什么
-
 ExecuteEngine::ExecuteEngine() {
   char path[] = "./databases";
   DIR *dir;
