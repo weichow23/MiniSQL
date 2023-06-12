@@ -160,3 +160,10 @@ TableIterator TableIterator::operator++(int) {
   ++(*this);
   return TableIterator{p};
 }
+// TODO:
+TableIterator &TableIterator::operator=(const TableIterator &itr) noexcept {
+  table_heap_ = itr.table_heap_;
+  row_ = itr.row_;
+  //    txn_ = itr.txn_;
+  return *this;
+};

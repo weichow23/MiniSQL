@@ -38,4 +38,7 @@ class IndexScanExecutor : public AbstractExecutor {
 
   /** The sequential scan plan node to be executed */
   const IndexScanPlanNode *plan_;
+  vector<RowId> contain_;
+  vector<RowId>::iterator now_;
+  vector<RowId>::iterator end_;
 };

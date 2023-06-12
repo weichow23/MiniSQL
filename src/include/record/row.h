@@ -78,6 +78,23 @@ class Row {
     return *this;
   }
 
+  bool operator < (const Row &other)const {
+    if(GetFieldCount() < other.GetFieldCount()) return false;
+    for(uint32_t i = 0; i < GetFieldCount(); ++i) {
+      if (GetField(i)->CompareEquals(*other.GetField(i))) continue;
+      return GetField(i)->CompareLessThan(*other.GetField(i));
+    }
+    return false;
+  }
+
+  bool operator == (const Row &other)const {
+    if(GetFieldCount() != other.GetFieldCount()) return false;
+    for(uint32_t i = 0; i < GetFieldCount(); ++i) {
+      if(!GetField(i)->CompareEquals(*other.GetField(i))) return false;
+    }
+    return true;
+  }
+
   /**
    * Note: Make sure that bytes write to buf is equal to GetSerializedSize()
    */

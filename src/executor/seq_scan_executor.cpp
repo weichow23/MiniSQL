@@ -1,3 +1,6 @@
+//
+// Created by njz on 2023/1/17.
+//
 #include "executor/executors/seq_scan_executor.h"
 
 /**
@@ -8,13 +11,36 @@ SeqScanExecutor::SeqScanExecutor(ExecuteContext *exec_ctx, const SeqScanPlanNode
       plan_(plan){}
 
 void SeqScanExecutor::Init() {
+    BufferPoolManager* buf = GetExecutorContext()->GetBufferPoolManager();
+    TableInfo *info = nullptr;
+    GetExecutorContext()->GetCatalog()->GetTable(plan_->GetTableName(),info);
+    it_ = info->GetTableHeap()->Begin(GetExecutorContext()->GetTransaction());
+    end_ = info->GetTableHeap()->End();
 
+    exec_ctx_->GetCatalog()->GetTable(plan_->table_name_, table_info_);
 }
 
 bool SeqScanExecutor::Next(Row *row, RowId *rid) {
-//  auto predicate = plan_->GetPredicate();
-//  if(predicate == nullptr){
-//    iterator++;
-//  }
-  return false;
+    // 找复合条件的row
+    while( it_ != end_ ){
+        // 如果返回的是kTypeInt的1，即正确
+        if (  plan_->filter_predicate_ == nullptr ||
+                    Field(TypeId::kTypeInt,1).CompareEquals(plan_->filter_predicate_->Evaluate(&(*it_))) ){
+
+            vector<Field> output;output.clear();
+            for( auto col : plan_->OutputSchema()->GetColumns() ){
+                ::uint32_t col_index;
+                table_info_->GetSchema()->GetColumnIndex(col->GetName(),col_index);
+                output.push_back(*(*it_).GetField(col_index));
+            }
+
+            *row = Row(output);
+            row->SetRowId((*it_).GetRowId());
+            it_++;
+            rid = new RowId(row->GetRowId());
+            return true;
+        }
+        else it_++;
+    }
+    return false;
 }

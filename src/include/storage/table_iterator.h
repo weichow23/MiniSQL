@@ -8,18 +8,21 @@
 class TableHeap;
 
 class TableIterator {
-public:
+ public:
   // you may define your own constructor based on your member variables
   //  explicit TableIterator();
+  explicit TableIterator(){};
   explicit TableIterator(TableHeap * t,RowId rid);  //修改了构造函数
 
   explicit TableIterator(const TableIterator &other);
 
   virtual ~TableIterator();
 
-  inline bool operator==(const TableIterator &itr) const;
+  //  inline bool operator==(const TableIterator &itr) const;
+  bool operator==(const TableIterator &itr) const;
 
-  inline bool operator!=(const TableIterator &itr) const;
+  //  inline bool operator!=(const TableIterator &itr) const;
+  bool operator!=(const TableIterator &itr) const;
 
   const Row &operator*();
 
@@ -31,10 +34,10 @@ public:
 
   TableIterator operator++(int);
 
-private:
+ private:
   // add your own private member variables here
- TableHeap* table_heap_;// 新加
- Row* row_;// 新加
+  TableHeap* table_heap_;// 新加
+  Row* row_;// 新加
 };
 
 #endif  // MINISQL_TABLE_ITERATOR_H

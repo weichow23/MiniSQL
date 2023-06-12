@@ -14,7 +14,9 @@
 #include "transaction/transaction.h"
 
 extern "C" {
-#include "parser/parser.h"
+    int yyparse(void);
+    #include "parser/parser.h"
+    #include "parser/minisql_lex.h"
 };
 
 /**
