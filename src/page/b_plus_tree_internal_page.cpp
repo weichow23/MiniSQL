@@ -71,18 +71,20 @@ void InternalPage::PairCopy(void *dest, void *src, int pair_num) {
  */
 /* LOOK UP */
 page_id_t InternalPage::Lookup(const GenericKey *key, const KeyManager &KM) {
-  int size = GetSize();
-  page_id_t result;
-  int i;
-  for (i = 1; i < size; i++) {
-    if (KM.CompareKeys(key, KeyAt(i)) < 0) {
-      result = ValueAt(i-1);
-      break;
+    int left = 1;
+    int right = GetSize() - 1;
+    while (left <= right) {
+        int mid = (left + right) / 2;
+        GenericKey *current_key = KeyAt(mid);
+        int compare_result = KM.CompareKeys(key, current_key);
+
+        if (compare_result <0) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
     }
-  }
-  if (i == size)
-    result = ValueAt(i-1);
-  return result;
+    return ValueAt(left-1);
 }
 
 /*****************************************************************************
