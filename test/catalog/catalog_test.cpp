@@ -48,7 +48,6 @@ TEST(CatalogTest, CatalogTableTest) {
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
-  // 下面这个可能有点问题，销毁dbEngine的时候连锁删了schema，导致后面的table_info->GetSchema()出错， 可能需要换成new
   auto schema = std::make_shared<Schema>(columns);
   Transaction txn;
   catalog_01->CreateTable("table-1", schema.get(), &txn, table_info);

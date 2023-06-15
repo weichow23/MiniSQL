@@ -6,68 +6,59 @@
 
 UpdateExecutor::UpdateExecutor(ExecuteContext *exec_ctx, const UpdatePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+        : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
 /**
 * TODO: Student Implement
 */
 void UpdateExecutor::Init() {
-    // 把table和indexes存储起来
     child_executor_->Init();
-    GetExecutorContext()->GetCatalog()->GetTable(plan_->table_name_,table_info_);
-    GetExecutorContext()->GetCatalog()->GetTableIndexes(plan_->table_name_,indexes_);
+    std::string table_name = plan_->GetTableName();
+    CatalogManager *catalog = exec_ctx_->GetCatalog();
+    dberr_t ret = catalog->GetTable(table_name, table_info_);
+    catalog->GetTableIndexes(table_name,index_info_);
 }
 
 bool UpdateExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
-    // 先判断能不能取道row
-    Row *src_row = new Row(), *update_row = new Row();
-    if( !child_executor_->Next(src_row,nullptr))  return false;
-    // 取得更新后的row
-    update_row = new Row(GenerateUpdatedTuple(*src_row)) ;
-    // 判断更新后的row有没有重复
-    for( auto index : indexes_ ){
-        // 取出key
-        vector<Field> key_contain;
-        for( auto col : index->GetIndexKeySchema()->GetColumns() ){
-            uint32_t col_index;
-            table_info_->GetSchema()->GetColumnIndex(col->GetName(),col_index);
-            key_contain.push_back(*(update_row->GetField(col_index)));
-        }
-        vector<RowId> result;
-        index->GetIndex()->ScanKey(Row(key_contain),result, nullptr);
-        // 如果新的row有存在，就更新不了
-        if( !(result.empty() || result[0] == src_row->GetRowId()) )  return false;
-    }
-    // 可以更新了
-    // 先删后加
-    table_info_->GetTableHeap()->MarkDelete(src_row->GetRowId(), nullptr);
-    table_info_->GetTableHeap()->InsertTuple(*update_row, nullptr);
-    // 索引更新
-    for( auto index : indexes_ ){
+    if(!child_executor_->Next(row, rid))
+        return false;
+    TableHeap* table_heap = table_info_->GetTableHeap();
+    //获取新元组
+    Row* new_row = new Row(GenerateUpdatedTuple(*row));
+    new_row->SetRowId(row->GetRowId());
+    //修改表
+    table_heap->UpdateTuple(*new_row,*rid, nullptr);
+    //修改索引
+
+    for( auto index : index_info_ ){
         // 取出key
         vector<Field> remove_key;
         vector<Field> insert_key;
         for( auto col : index->GetIndexKeySchema()->GetColumns() ){
             uint32_t col_index;
             table_info_->GetSchema()->GetColumnIndex(col->GetName(),col_index);
-            remove_key.push_back(*(src_row->GetField(col_index)));
-            insert_key.push_back(*(update_row->GetField(col_index)));
+            remove_key.push_back(*(row->GetField(col_index)));
+            insert_key.push_back(*(new_row->GetField(col_index)));
         }
         // 删去之前的index
         index->GetIndex()->RemoveEntry(Row(remove_key), RowId(), nullptr);
         // 加上新的index
-        index->GetIndex()->InsertEntry(Row(insert_key),update_row->GetRowId(), nullptr);
+        index->GetIndex()->InsertEntry(Row(insert_key), new_row->GetRowId(), nullptr);
     }
+    row = nullptr;
     return true;
 }
 
 Row UpdateExecutor::GenerateUpdatedTuple(const Row &src_row) {
-    // 先copy一份之前的
-    Row update_row(src_row);
-    // update部分
-    for( auto pair : plan_->GetUpdateAttr() ){
-        // 用pair first来确定更改的索引，second来确定内容
-        update_row.GetFields()[pair.first] = new Field(pair.second->Evaluate(nullptr));
-    }
-    return update_row;
+    auto UpdatedAddr = plan_->GetUpdateAttr();
+    Row row(src_row);
+    auto fields = row.GetFields();
+    vector<Field> new_fields;
+    //fields.clear();
+    for(int i = 0; i < fields.size(); i++)
+        if(UpdatedAddr.count(i)) //如果此属性需要被更改
+            new_fields.emplace_back(UpdatedAddr[i]->Evaluate(&row));
+        else
+            new_fields.emplace_back(*row.GetField(i));
+    return Row(new_fields);
 }

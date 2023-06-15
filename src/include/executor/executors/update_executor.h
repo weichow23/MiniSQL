@@ -57,10 +57,7 @@ class UpdateExecutor : public AbstractExecutor {
   std::vector<IndexInfo *> index_info_;
   /** The child executor to obtain value from */
   std::unique_ptr<AbstractExecutor> child_executor_;
-
-  TableInfo* table_info_;
-  vector<IndexInfo*> indexes_;
-
+  TableInfo* table_info_;//新增
 };
 
 #endif  // MINISQL_UPDATE_EXECUTOR_H

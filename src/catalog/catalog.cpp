@@ -314,7 +314,7 @@ dberr_t CatalogManager::LoadTable(const table_id_t table_id, const page_id_t pag
   // 新建TableMetaData并反序列化
   TableInfo *table_info = TableInfo::Create();
   // meta_data_page->RLatch();
-  TableMetadata *meta_data;
+  TableMetadata *meta_data = nullptr;
   TableMetadata::DeserializeFrom(meta_data_page->GetData(), meta_data);
   //  meta_data_page->RUnlatch();
   ASSERT(table_id == meta_data->GetTableId(), "False Table ID in LoadTable!");
@@ -337,7 +337,7 @@ dberr_t CatalogManager::LoadIndex(const index_id_t index_id, const page_id_t pag
   ASSERT(meta_data_page != nullptr, "Fetch Tabel_meta_data_page failed!");
   // 新建IndexMetaData并反序列化
   IndexInfo *index_info = IndexInfo::Create();
-  IndexMetadata *meta_data;
+  IndexMetadata *meta_data = nullptr;
   IndexMetadata::DeserializeFrom(meta_data_page->GetData(), meta_data);
   ASSERT(index_id == meta_data->GetIndexId(), "False Index ID in LoadIndex!");
   // 插入index_names_

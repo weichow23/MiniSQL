@@ -128,7 +128,7 @@ void LeafPage::MoveHalfTo(LeafPage *recipient) {
   int size = GetSize();
   int start = GetMaxSize() / 2;
   int length = size - start;
-  recipient->CopyNFrom(pairs_off + start, length);
+  recipient->CopyNFrom(pairs_off + start*GetKeySize(), length);
   SetSize(start);
 }
 /*
@@ -136,7 +136,8 @@ void LeafPage::MoveHalfTo(LeafPage *recipient) {
  */
 /* CopyNFrom */
 void LeafPage::CopyNFrom(void *src, int size) {
-  PairCopy(pairs_off + GetSize() * pair_size, src, size);
+  //PairCopy(pairs_off + GetSize() * pair_size, src, size);
+    PairCopy(pairs_off, src, size);
   IncreaseSize(size);
 }
 

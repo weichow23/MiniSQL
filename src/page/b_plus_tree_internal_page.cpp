@@ -127,17 +127,15 @@ int InternalPage::InsertNodeAfter(const page_id_t &old_value, GenericKey *new_ke
  *****************************************************************************/
 /*
  * Remove half of key & value pairs from this page to "recipient" page
- * buffer_pool_manager 是干嘛的？传给CopyNFrom()用于Fetch数据页
+ * buffer_pool_manager 用于传给CopyNFrom()用于Fetch数据页
  */
 /* MoveHalfTo */
 void InternalPage::MoveHalfTo(InternalPage *recipient, BufferPoolManager *buffer_pool_manager) {
-  // assert(recipient != NULL);
-  int size = GetSize();
-  // assert(size == GetMaxSize() + 1);
-  int start = GetMaxSize() / 2;
-  int length = size - start;
-  recipient->CopyNFrom(pairs_off  + GetMaxSize() / 2, length, buffer_pool_manager);
-  SetSize(GetMinSize());
+    int RightNode=(GetSize()+1)/2;
+    int LeftNode =GetSize() - RightNode;
+    recipient->SetSize(RightNode);
+    recipient->CopyNFrom(PairPtrAt(LeftNode),RightNode,buffer_pool_manager);
+    SetSize(LeftNode);
 }
 
 /* Copy entries into me, starting from {items} and copy {size} entries.
@@ -148,7 +146,7 @@ void InternalPage::MoveHalfTo(InternalPage *recipient, BufferPoolManager *buffer
 /* CopyNFrom */
 void InternalPage::CopyNFrom(void *src, int size, BufferPoolManager *buffer_pool_manager) {
   //  std::copy(&src, &src + size, pairs_off + GetSize());
-  PairCopy(PairPtrAt(GetSize()), src, size);  //这句可能有问题？ TODO
+  PairCopy(PairPtrAt(GetSize()), src, size);
   for (int i = GetSize(); i < GetSize() + size; i++) {
     Page *child_page = buffer_pool_manager->FetchPage(ValueAt(i));
     BPlusTreePage *child_node = reinterpret_cast<BPlusTreePage *>(child_page->GetData());
@@ -233,8 +231,7 @@ void InternalPage::MoveFirstToEndOf(InternalPage *recipient, GenericKey *middle_
 /* CopyLastFrom */
 void InternalPage::CopyLastFrom(GenericKey *key, const page_id_t value, BufferPoolManager *buffer_pool_manager) {
   int size = GetSize();
-  //array_[size] = pair;
-  PairCopy(PairPtrAt(size), key, 1); //这句可能有问题？ TODO 上面那个注解掉的是上一届的写法
+  PairCopy(PairPtrAt(size), key, 1);
   Page *page = buffer_pool_manager->FetchPage(ValueAt(size));
   BPlusTreePage *datapage = reinterpret_cast<BPlusTreePage *>(page->GetData());
   datapage->SetParentPageId(GetPageId());
