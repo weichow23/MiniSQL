@@ -41,10 +41,13 @@ int main(int argc, char **argv) {
   // for print syntax tree
   TreeFileManagers syntax_tree_file_mgr("syntax_tree_");
   uint32_t syntax_tree_id = 0;
-
+  int i=0;
   while (1) {
     // read from buffer
+
     InputCommand(cmd, buf_size);
+    auto start_time = std::chrono::system_clock::now();
+
     // create buffer for sql input
     YY_BUFFER_STATE bp = yy_scan_string(cmd);
     if (bp == nullptr) {
@@ -64,7 +67,6 @@ int main(int argc, char **argv) {
       // error
       printf("%s\n", MinisqlParserGetErrorMessage());
     } else {
-      // Comment them out if you don't need to debug the syntax tree
       printf("[INFO] Sql syntax parse ok!\n");
       SyntaxTreePrinter printer(MinisqlGetParserRootNode());
       printer.PrintTree(syntax_tree_file_mgr[syntax_tree_id++]);
@@ -82,6 +84,10 @@ int main(int argc, char **argv) {
     if (result == DB_QUIT) {
       break;
     }
+    auto stop_time = std::chrono::system_clock::now();
+    double duration_time =
+        double((std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time)).count());
+    cout<<"total duration:"<<duration_time*1.0/1000<<endl;
   }
   return 0;
 }
