@@ -1,18 +1,12 @@
-//
-// Created by njz on 2023/1/30.
-//
-
 #include "executor/executors/update_executor.h"
 
 UpdateExecutor::UpdateExecutor(ExecuteContext *exec_ctx, const UpdatePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
         : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
-/**
-* TODO: Student Implement
-*/
 void UpdateExecutor::Init() {
     child_executor_->Init();
+    // 把table和indexes存储起来
     std::string table_name = plan_->GetTableName();
     CatalogManager *catalog = exec_ctx_->GetCatalog();
     dberr_t ret = catalog->GetTable(table_name, table_info_);
@@ -20,6 +14,7 @@ void UpdateExecutor::Init() {
 }
 
 bool UpdateExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
+    // 先判断能不能取row
     if(!child_executor_->Next(row, rid))
         return false;
     TableHeap* table_heap = table_info_->GetTableHeap();
@@ -29,7 +24,6 @@ bool UpdateExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
     //修改表
     table_heap->UpdateTuple(*new_row,*rid, nullptr);
     //修改索引
-
     for( auto index : index_info_ ){
         // 取出key
         vector<Field> remove_key;
@@ -50,11 +44,12 @@ bool UpdateExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
 }
 
 Row UpdateExecutor::GenerateUpdatedTuple(const Row &src_row) {
+    // 先copy一份之前的row
     auto UpdatedAddr = plan_->GetUpdateAttr();
     Row row(src_row);
     auto fields = row.GetFields();
     vector<Field> new_fields;
-    //fields.clear();
+    // update
     for(int i = 0; i < fields.size(); i++)
         if(UpdatedAddr.count(i)) //如果此属性需要被更改
             new_fields.emplace_back(UpdatedAddr[i]->Evaluate(&row));

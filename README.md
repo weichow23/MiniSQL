@@ -53,17 +53,3 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 
 如果需要运行单个测试，例如，想要运行`lru_replacer_test.cpp`对应的测试文件，可以通过`make lru_replacer_test`
 命令进行构建。
-
-# 验收数据
-
-create database db0;
-
-use db0;
-
-create table account(id int, name char(16), balance float, primary key(id));
-
-execfile "account01.txt";
-
-select id, name from account where balance >= 1 and balance < 1000;
-
-select * from account where id <>1219999;

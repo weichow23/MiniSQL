@@ -1,18 +1,11 @@
-//
-// Created by njz on 2023/1/29.
-//
-
 #include "executor/executors/delete_executor.h"
-
-/**
-* TODO: Student Implement
-*/
 
 DeleteExecutor::DeleteExecutor(ExecuteContext *exec_ctx, const DeletePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
 void DeleteExecutor::Init() {
+  // 把table和indexes存储起来
   child_executor_->Init();
   std::string table_name = plan_->GetTableName();
   CatalogManager *catalog = exec_ctx_->GetCatalog();
@@ -21,11 +14,11 @@ void DeleteExecutor::Init() {
 }
 
 bool DeleteExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
+  // 如果后面还有用到，不能删除
   if(!child_executor_->Next(row, rid)) 
     return false;
-  
-  TableHeap* table_heap = table_info_->GetTableHeap();
   // MarkDelete
+  // 删除失败
   if(!table_info_->GetTableHeap()->MarkDelete(row->GetRowId(), nullptr)) 
     return false;
   // 删索引
@@ -37,7 +30,7 @@ bool DeleteExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
           table_info_->GetSchema()->GetColumnIndex(col->GetName(),col_index);
           key_contain.push_back(*(row->GetField(col_index)));
       }
-      // 删除
+      // 删除index
       index->GetIndex()->RemoveEntry(Row(key_contain),row->GetRowId(), nullptr);
   }
   row = nullptr;

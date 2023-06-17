@@ -1,7 +1,7 @@
 #include "storage/disk_manager.h"
-
+#include "iostream"
 #include <unordered_set>
-
+#include "glog/logging.h"
 #include "gtest/gtest.h"
 
 TEST(DiskManagerTest, BitMapPageTest) {

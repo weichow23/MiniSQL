@@ -18,10 +18,7 @@ class DBStorageEngine {
 
   ~DBStorageEngine();
 
-  int RemoveDBStorageEngine();//Drop database的时候物理删除
-
   std::unique_ptr<ExecuteContext> MakeExecuteContext(Transaction *txn);
-
 
  public:
   DiskManager *disk_mgr_;

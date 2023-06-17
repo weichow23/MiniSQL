@@ -14,9 +14,8 @@ using Fields = std::vector<Field>;
 
 TEST(TableHeapTest, TableHeapSampleTest) {
   // init testing instance
-  auto disk_mgr_ = new DiskManager(db_file_name);
-  auto bpm_ = new BufferPoolManager(DEFAULT_BUFFER_POOL_SIZE, disk_mgr_);
-  const int row_nums = 10000;
+  DBStorageEngine engine(db_file_name);
+  const int row_nums = 1000;
   // create schema
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
@@ -25,8 +24,9 @@ TEST(TableHeapTest, TableHeapSampleTest) {
   // create rows
   std::unordered_map<int64_t, Fields *> row_values;
   uint32_t size = 0;
-  TableHeap *table_heap = TableHeap::Create(bpm_, schema.get(), nullptr, nullptr, nullptr);
+  TableHeap *table_heap = TableHeap::Create(engine.bpm_, schema.get(), nullptr, nullptr, nullptr);
   for (int i = 0; i < row_nums; i++) {
+
     int32_t len = RandomUtils::RandomInt(0, 64);
     char *characters = new char[len];
     RandomUtils::RandomString(characters, len);

@@ -1,8 +1,8 @@
 //
 // Created by njz on 2023/2/2.
 //
-#include <algorithm>
 #include "planner/planner.h"
+#include "algorithm"
 
 void Planner::PlanQuery(pSyntaxNode ast) {
   switch (ast->type_) {
@@ -42,6 +42,7 @@ AbstractPlanNodeRef Planner::PlanSelect(std::shared_ptr<SelectStatement> stateme
   for (auto index : indexes) {
     if (index->GetIndexKeySchema()->GetColumns().size() == 1) {
       auto col_id = index->GetIndexKeySchema()->GetColumn(0)->GetTableInd();
+      
       if (std::find(statement->column_in_condition_.begin(), statement->column_in_condition_.end(), col_id) !=
           statement->column_in_condition_.end()) {
         available_index.push_back(index);

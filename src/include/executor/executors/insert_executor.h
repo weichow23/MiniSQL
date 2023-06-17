@@ -1,7 +1,3 @@
-//
-// Created by njz on 2023/1/27.
-//
-
 #ifndef MINISQL_INSERT_EXECUTOR_H
 #define MINISQL_INSERT_EXECUTOR_H
 

@@ -47,10 +47,6 @@ DBStorageEngine::~DBStorageEngine() {
   delete disk_mgr_;
 }
 
-int DBStorageEngine::RemoveDBStorageEngine() {
-  return remove(db_file_name_.c_str());
-}
-
 std::unique_ptr<ExecuteContext> DBStorageEngine::MakeExecuteContext(Transaction *txn) {
   return std::make_unique<ExecuteContext>(txn, catalog_mgr_, bpm_);
 }

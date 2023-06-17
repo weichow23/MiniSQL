@@ -1,8 +1,9 @@
-#include <algorithm>
 #include "index/b_plus_tree_index.h"
 
 #include "index/generic_key.h"
 #include "utils/tree_file_mgr.h"
+#include <algorithm>
+
 BPlusTreeIndex::BPlusTreeIndex(index_id_t index_id, IndexSchema *key_schema, size_t key_size,
                                BufferPoolManager *buffer_pool_manager)
     : Index(index_id, key_schema),
@@ -18,7 +19,7 @@ dberr_t BPlusTreeIndex::InsertEntry(const Row &key, RowId row_id, Transaction *t
   delete index_key;
   //  TreeFileManagers mgr("tree_");
   //  static int i = 0;
-  //  if (i % 10 == 0) container_.PrintTree(mgr[i]);
+  //  if (i % 100 == 0) container_.PrintTree(mgr[i]);
   //  i++;
 
   if (!status) {
@@ -39,12 +40,14 @@ dberr_t BPlusTreeIndex::RemoveEntry(const Row &key, RowId row_id, Transaction *t
 dberr_t BPlusTreeIndex::ScanKey(const Row &key, vector<RowId> &result, Transaction *txn, string compare_operator) {
   GenericKey *index_key = processor_.InitKey();
   processor_.SerializeFromKey(index_key, key, key_schema_);
+  
   if (compare_operator == "=") {
     container_.GetValue(index_key, result, txn);
   } else if (compare_operator == ">") {
     auto iter = GetBeginIterator(index_key);
     if (container_.GetValue(index_key, result, txn))
       ++iter;
+    result.clear();
     for (; iter != GetEndIterator(); ++iter) {
       result.emplace_back((*iter).second);
     }
@@ -67,7 +70,9 @@ dberr_t BPlusTreeIndex::ScanKey(const Row &key, vector<RowId> &result, Transacti
     }
     vector<RowId> temp;
     if (container_.GetValue(index_key, temp, txn))
-      result.erase(find(result.begin(), result.end(), temp[0]));
+      result.erase(std::find(result.begin(), result.end(), temp[0]));
+
+
   }
   delete index_key;
   if (!result.empty())

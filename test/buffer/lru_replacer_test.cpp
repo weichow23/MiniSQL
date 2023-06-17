@@ -1,4 +1,5 @@
 #include "buffer/lru_replacer.h"
+#include "buffer/lru_k_replacer.h"
 #include "gtest/gtest.h"
 
 TEST(LRUReplacerTest, SampleTest) {

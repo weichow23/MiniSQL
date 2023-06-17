@@ -6,6 +6,7 @@ InsertExecutor::InsertExecutor(ExecuteContext *exec_ctx, const InsertPlanNode *p
 
 void InsertExecutor::Init() {
     child_executor_->Init();
+    // 把catalog
     CatalogManager *catalog = exec_ctx_->GetCatalog();
     dberr_t ret = catalog->GetTable(plan_->table_name_, table_info_);
     catalog->GetTableIndexes(plan_->table_name_,index_info_);
@@ -13,6 +14,7 @@ void InsertExecutor::Init() {
 
 bool InsertExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
     Row* insert = new Row();
+    // 已经存完了
     if( !child_executor_->Next(insert, nullptr))
         return false;
     // 先判断插入值是否已经存在
@@ -27,12 +29,11 @@ bool InsertExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
         // 判断index是否存在
         std::vector<RowId> result(0);
         index->GetIndex()->ScanKey(Row(key_contain),result, nullptr);
-        if (!result.empty())
-        {
+        if (!result.empty()){
             return false;
         }
     }
-    // 插入的值不存在
+    // 要插入的值不存在
     table_info_->GetTableHeap()->InsertTuple(*insert, nullptr);
     // 更新index
     for( auto index : index_info_ ){
