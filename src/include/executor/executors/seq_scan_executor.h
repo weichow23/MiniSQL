@@ -1,3 +1,7 @@
+//
+// Created by njz on 2023/1/17.
+//
+
 #ifndef MINISQL_SEQ_SCAN_EXECUTOR_H
 #define MINISQL_SEQ_SCAN_EXECUTOR_H
 

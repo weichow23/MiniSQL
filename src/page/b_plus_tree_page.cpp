@@ -4,27 +4,26 @@
  * Helper methods to get/set page type
  * Page type enum class is defined in b_plus_tree_page.h
  */
-/**
- * TODO: Student Implement
- */
+/* IsLeafPage() */
 bool BPlusTreePage::IsLeafPage() const {
-  return (page_type_ == IndexPageType::LEAF_PAGE);
+  if (page_type_ == IndexPageType::LEAF_PAGE)
+    return true;
+  else
+    return false;
 }
 
-/**
- * TODO: Student Implement
- */
+/* IsRootPage */
 bool BPlusTreePage::IsRootPage() const {
-  return (parent_page_id_ == INVALID_PAGE_ID);
+  if (parent_page_id_ == INVALID_FRAME_ID)
+    return true;
+  else
+    return false;
 }
 
-/**
- * TODO: Student Implement
- */
+/* SetPageType */
 void BPlusTreePage::SetPageType(IndexPageType page_type) {
   page_type_ = page_type;
 }
-
 int BPlusTreePage::GetKeySize() const {
   return key_size_;
 }
@@ -52,16 +51,12 @@ void BPlusTreePage::IncreaseSize(int amount) {
 /*
  * Helper methods to get/set max size (capacity) of the page
  */
-/**
- * TODO: Student Implement
- */
+/* GetMaxSize() */
 int BPlusTreePage::GetMaxSize() const {
   return max_size_;
 }
 
-/**
- * TODO: Student Implement
- */
+/* SetMaxSize */
 void BPlusTreePage::SetMaxSize(int size) {
   max_size_ = size;
 }
@@ -70,30 +65,21 @@ void BPlusTreePage::SetMaxSize(int size) {
  * Helper method to get min page size
  * Generally, min page size == max page size / 2
  */
-/**
- * TODO: Student Implement
- */
+/* GetMinSize */
 int BPlusTreePage::GetMinSize() const {
-  if (IsRootPage()) {
-    if (IsLeafPage()) {
-      return 1;
-    } else {
-      return 2;
-    }
-  }
-  return (max_size_ + 1) / 2;
+//  return max_size_ / 2;
+  if(IsRootPage())
+    return IsLeafPage()?1:2;
+  else
+    return (max_size_+1)/2;
 }
 
 /*
  * Helper methods to get/set parent page id
  */
-/**
- * TODO: Student Implement
- */
+/* GetParentPageId */
 page_id_t BPlusTreePage::GetParentPageId() const {
-  if (IsRootPage()) 
-    return INVALID_PAGE_ID;
-  else return parent_page_id_;
+  return parent_page_id_;
 }
 
 void BPlusTreePage::SetParentPageId(page_id_t parent_page_id) {
@@ -112,7 +98,7 @@ void BPlusTreePage::SetPageId(page_id_t page_id) {
 }
 
 /*
- * Helper methods to set lsn
+ * Helper methods to set lsn  数据页的日志序列号，我不会用到
  */
 void BPlusTreePage::SetLSN(lsn_t lsn) {
   lsn_ = lsn;

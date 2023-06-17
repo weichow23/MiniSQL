@@ -65,7 +65,6 @@ class BPlusTree {
     auto *node = reinterpret_cast<BPlusTreePage *>(root_page);
     ToGraph(node, buffer_pool_manager_, out);
     out << "}" << std::endl;
-    out.flush();
   }
 
  private:

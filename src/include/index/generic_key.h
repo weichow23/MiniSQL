@@ -72,4 +72,3 @@ class KeyManager {
 };
 
 #endif  // MINISQL_GENERIC_KEY_H
-
