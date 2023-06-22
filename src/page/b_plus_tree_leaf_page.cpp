@@ -251,7 +251,6 @@ void LeafPage::MoveLastToFrontOf(LeafPage *recipient) {
 }
 /*
  * Insert item at the front of my items. Move items accordingly.
- *
  */
 void LeafPage::CopyFirstFrom(GenericKey *key, const RowId value) {
   int size = GetSize();

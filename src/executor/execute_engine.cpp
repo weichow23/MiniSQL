@@ -1,11 +1,8 @@
 #include "executor/execute_engine.h"
-
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
 #include <chrono>
-
 #include "common/result_writer.h"
 #include "executor/executors/delete_executor.h"
 #include "executor/executors/index_scan_executor.h"
@@ -18,9 +15,9 @@
 #include "utils/utils.h"
 
 extern "C" {
-int yyparse(void);
-#include "parser/minisql_lex.h"
-#include "parser/parser.h"
+    int yyparse(void);
+    #include "parser/minisql_lex.h"
+    #include "parser/parser.h"
 }
 
 ExecuteEngine::ExecuteEngine() {
@@ -86,13 +83,11 @@ dberr_t ExecuteEngine::ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<
                                    ExecuteContext *exec_ctx) {
   // Construct the executor for the abstract plan node
   auto executor = CreateExecutor(exec_ctx, plan);
-
   try {
     executor->Init();
     RowId rid{};
     Row row{};
     while (executor->Next(&row, &rid)) {
-      //std::cout<<row.GetField(0)->toString()<<std::endl;
       if (result_set != nullptr) {
         result_set->push_back(row);
       }
@@ -238,7 +233,7 @@ void ExecuteEngine::ExecuteInformation(dberr_t result) {
       cout << "Key not exists." << endl;
       break;
     case DB_QUIT:
-      cout << "Bye." << endl;
+      cout << "Quit!" << endl;
       break;
     default:
       break;
@@ -249,10 +244,8 @@ dberr_t ExecuteEngine::ExecuteCreateDatabase(pSyntaxNode ast, ExecuteContext *co
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateDatabase" << std::endl;
 #endif
-  ASSERT(ast->type_ == kNodeCreateDB, "Wrong Type");
   string db_name=ast->child_->val_;
   if (dbs_.find(db_name)!=dbs_.end()){
-    cout<<"Database "<<db_name<<" already exists."<<endl;
     return DB_ALREADY_EXIST;
   }
   DBStorageEngine *new_db = new DBStorageEngine(db_name.data());
@@ -268,12 +261,10 @@ dberr_t ExecuteEngine::ExecuteDropDatabase(pSyntaxNode ast, ExecuteContext *cont
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteDropDatabase" << std::endl;
 #endif
-  ASSERT(ast== nullptr || ast->child_== nullptr, "ExecuteEngine::ExecuteDropDatabase error: null ast or ast child");
-  ASSERT(ast->type_ == kNodeDropDB, "Wrong Type");
   string db_name=ast->child_->val_;
   auto db=dbs_.find(db_name);
   if (db==dbs_.end()){
-    cout<<"Database "<<db_name<<" doesn't exist."<<endl;
+    cout<<" Not Find"<<db_name<<endl;
     return DB_FAILED;
   }
   db->second->~DBStorageEngine();
@@ -282,7 +273,7 @@ dberr_t ExecuteEngine::ExecuteDropDatabase(pSyntaxNode ast, ExecuteContext *cont
   if (current_db_==db_name) {
     current_db_="";
   }
-  cout << "Database " << db_name << " has been dropped !" << endl;
+  cout<< db_name <<" has been dropped "<< endl;
  return DB_SUCCESS;
 }
 
@@ -291,10 +282,9 @@ dberr_t ExecuteEngine::ExecuteShowDatabases(pSyntaxNode ast, ExecuteContext *con
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowDatabases" << std::endl;
 #endif
-  ASSERT(ast->type_ == kNodeShowDB, "Wrong Type");
-  for (auto db:dbs_)
-    cout<<db.first<<endl;
-  cout<<"total number: "<<dbs_.size()<<endl;
+  for (auto db:dbs_){
+      cout<<db.first<<endl;
+  }
   return DB_SUCCESS;
 }
 
@@ -304,15 +294,13 @@ dberr_t ExecuteEngine::ExecuteUseDatabase(pSyntaxNode ast, ExecuteContext *conte
   LOG(INFO) << "ExecuteUseDatabase" << std::endl;
 #endif
   string db_name=ast->child_->val_;
-  // 更新
   auto db=dbs_.find(db_name);
-  // 确定这个dababase是不是在
   if (db==dbs_.end()){
-    cout<<"Database "<<db_name<<" doesn't exist."<<endl;
+    cout<<"Not find "<<db_name<<endl;
     return DB_NOT_EXIST;
   }
-  // 或者更新
-  cout<<"Switch to use database: "<<db_name<<endl;
+  // 转换当前的数据库
+  cout<<"Switch to use "<<db_name<<endl;
   current_db_=db_name;
   return DB_SUCCESS;
 }
@@ -322,10 +310,8 @@ dberr_t ExecuteEngine::ExecuteShowTables(pSyntaxNode ast, ExecuteContext *contex
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowTables" << std::endl;
 #endif
-  ASSERT(ast->type_ == kNodeShowTables, "Wrong Type");
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"You should select a database first"<<endl;
     return DB_NOT_EXIST;
   }
   // 找到所有的tables
@@ -334,7 +320,6 @@ dberr_t ExecuteEngine::ExecuteShowTables(pSyntaxNode ast, ExecuteContext *contex
   for (auto table:table_info){
     cout<<table->GetTableName()<<endl;
   }
-  cout<<"total number: "<<table_info.size()<<endl;
   return DB_SUCCESS;
 }
 
@@ -343,22 +328,20 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateTable" << std::endl;
 #endif
-
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"Please select a database first."<<endl;
     return DB_NOT_EXIST;
   }
   // 存信息的map
   vector<string> names,unique;
-  unordered_map<string ,bool> if_uni;
-  unordered_map<string ,string> col_type;
-  unordered_map<string ,int> col_length;
+  unordered_map<string ,bool> UniqueC;
+  unordered_map<string ,string> TypeC;
+  unordered_map<string ,int> LenC;
   // 得到名字和创建新的tableinfo
   CatalogManager* db_catalog=db->second->catalog_mgr_;
-  string table_name=ast->child_->val_;
+  string new_table=ast->child_->val_;
   TableInfo *table_info= nullptr;
-  dberr_t table_exist=db_catalog->GetTable(table_name,table_info);
+  dberr_t table_exist=db_catalog->GetTable(new_table,table_info);
   if (!table_exist){
     return DB_ALREADY_EXIST;
   }
@@ -369,65 +352,69 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
     string column_name=column->child_->val_;
     string column_type=column->child_->next_->val_;
     names.push_back(column_name);
-    col_type.emplace(column_name,column_type);
+    TypeC.emplace(column_name,column_type);
     if (column->val_!= nullptr){
       unique.push_back(column_name);
-      if_uni.emplace(column_name, true);
+      UniqueC.emplace(column_name, true);
     }
     if (column_type=="char"){
       string len=column->child_->next_->child_->val_;
       int length=atoi(len.data());
       if (length<=0) return DB_FAILED;
-      col_length.emplace(column_name,length);
+      LenC.emplace(column_name,length);
     }
     column=column->next_;
   }
   //create column
   vector<Column*> columns;
   columns.clear();
-  uint32_t col_index=0;
-  for (auto &name:names){
+  uint32_t IndexC=0;
+  for (auto &s:names){
     TypeId ctype;
-    if (col_type[name]=="int")
+    if (TypeC[s]=="int")
       ctype=kTypeInt;
-    else if (col_type[name]=="float")
-      ctype=kTypeFloat;
-    else if (col_type[name]=="char")
+    else if (TypeC[s]=="char")
       ctype=kTypeChar;
-    else return DB_FAILED;
-    Column* new_column;
-    if (col_type[name]=="char")
-      new_column=new Column(name,ctype,col_length[name],col_index, false,if_uni[name]);
+    else if (TypeC[s]=="float")
+      ctype=kTypeFloat;
+    else 
+    return DB_FAILED;
+    Column* NewC;
+    if (TypeC[s]=="char")
+      NewC=new Column(s,ctype,LenC[s],IndexC, false,UniqueC[s]);
     else
-      new_column=new Column(name,ctype,col_index, false,if_uni[name]);
-    col_index++;
-    columns.push_back(new_column);
+      NewC=new Column(s,ctype,IndexC, false,UniqueC[s]);
+    IndexC++;
+    columns.push_back(NewC);
   }
   // 开始建表
   Schema *schema=new Schema(columns);
   TableInfo *table_info_new=nullptr;
-  dberr_t create_table = db_catalog->CreateTable(table_name,schema, nullptr,table_info_new);
-  if (create_table) return create_table;
-  // 处理主键
-  vector<string >index_key;
+  dberr_t create_table = db_catalog->CreateTable(new_table,schema, nullptr,table_info_new);
+  if (create_table)
+      return create_table;
+  // primary key
+  vector<string >prikey;
   if (column!= nullptr) column=column->child_;
   while (column!= nullptr && column->type_==kNodeIdentifier){
-    index_key.push_back(column->val_);
+    prikey.push_back(column->val_);
     column=column->next_;
   }
-  string index_name=table_name + "_primary";
+  string index_name=new_table+ " primary key";
   IndexInfo *index_info= nullptr;
-  dberr_t create_index=db_catalog->CreateIndex(table_name,index_name,index_key,nullptr,index_info,"bptree");
-  if( create_index ) return create_index;
-  //create index for unique keys
-  index_key.clear();
+  dberr_t NewIndex=db_catalog->CreateIndex(new_table,index_name,prikey,nullptr,index_info,"bptree");
+  if(NewIndex)
+      return NewIndex;
+  // index
+  prikey.clear();
   for (auto &uni:unique){
-    index_key.push_back(uni);
-    index_name = table_name + "_" + uni + "_unique";
+    prikey.push_back(uni);
+    index_name = new_table+ "index" + uni;
     IndexInfo * new_index = nullptr;
-    dberr_t create_index = db_catalog->CreateIndex(table_name,index_name,index_key, nullptr,new_index,"bptree");
-    if( create_index ) return create_index;
-    index_key.pop_back();
+    dberr_t NewIndex = db_catalog->CreateIndex(new_table,index_name,prikey, nullptr,new_index,"bptree");
+    if(NewIndex)
+        return NewIndex;
+    prikey.pop_back();
   }
   return DB_SUCCESS;
 }
@@ -439,7 +426,6 @@ dberr_t ExecuteEngine::ExecuteDropTable(pSyntaxNode ast, ExecuteContext *context
 #endif
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"Please select a database first."<<endl;
     return DB_NOT_EXIST;
   }
   string table_name=ast->child_->val_;
@@ -454,24 +440,23 @@ dberr_t ExecuteEngine::ExecuteShowIndexes(pSyntaxNode ast, ExecuteContext *conte
 #endif
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"Please select a database first."<<endl;
     return DB_NOT_EXIST;
   }
-  CatalogManager* db_catalog=db->second->catalog_mgr_;
+  CatalogManager* cata=db->second->catalog_mgr_;
   // 得到所有的tables
   vector<TableInfo*> tables;
   vector<IndexInfo*> indexes;
-  db_catalog->GetTables(tables);
+  cata->GetTables(tables);
   int total=0;
   // 对每个table获取所有的index
   for (auto table:tables){
-    dberr_t err=db_catalog->GetTableIndexes(table->GetTableName(),indexes);
-    if (err) return err;
+    dberr_t err=cata->GetTableIndexes(table->GetTableName(),indexes);
+    if (err)
+        return err;
     total+=indexes.size();
-    for (auto index:indexes)
-      cout<<index->GetIndexName()<<endl;
+    for (auto i:indexes)
+      cout<<i->GetIndexName()<<endl;
   }
-  cout<<"total number: "<<total<<endl;
   return DB_SUCCESS;
 }
 
@@ -482,7 +467,6 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
 #endif
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"Please select a database first."<<endl;
     return DB_NOT_EXIST;
   }
   // 得到索引的名字
@@ -498,8 +482,8 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
   }
   // 创建索引
   IndexInfo *index_info= nullptr;
-  dberr_t create_index=db_catalog->CreateIndex(table_name,index_name,keymap, nullptr,index_info,"bptree");
-  return create_index;
+  dberr_t NewIndex=db_catalog->CreateIndex(table_name,index_name,keymap, nullptr,index_info,"bptree");
+  return NewIndex;
 }
 
 /* ExecuteDropIndex */
@@ -511,7 +495,6 @@ dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context
   string index_name=ast->child_->val_;
   auto db=dbs_.find(current_db_);
   if (db==dbs_.end()){
-    cout<<"Please select a database first."<<endl;
     return DB_NOT_EXIST;
   }
   auto db_catalog=db->second->catalog_mgr_;
@@ -524,11 +507,11 @@ dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context
   for (auto table:tables){
     err=db_catalog->DropIndex(table->GetTableName(),index_name);
     if (!err){
-      cout<<"Drop index sucessfully!"<<endl;
+      cout<<"Index Dropped"<<endl;
       return DB_SUCCESS;
     }
   }
-  cout<<"Index doesn't exist."<<endl;
+  cout<<"Not find the Index"<<endl;
   return DB_INDEX_NOT_FOUND;
 }
 
@@ -553,23 +536,7 @@ dberr_t ExecuteEngine::ExecuteTrxRollback(pSyntaxNode ast, ExecuteContext *conte
 #endif
   return DB_FAILED;
 }
-/* InputCommand */
-void InputCommand(char *input, const int len,fstream &file) {
-  memset(input, 0, len);
-  printf("minisql > ");
-  int i = 0;
-  char ch;
-  while (!file.eof() && (ch = file.get()) != ';') {
-    input[i++] = ch;
-  }
-  if (file.eof())
-  {
-    memset(input,0,len);
-    return;
-  }
-  input[i] = ch;  // ;
-  file.get();      // remove backenter
-}
+
 /* ExecuteExecfile */
 dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
@@ -578,20 +545,31 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
   string file_name=ast->child_->val_;
   fstream file(file_name);
   if (!file.is_open()){
-    cout<<"Fial to open file "<<file_name<<endl;
+    cout<<"Fail to open file "<<file_name<<endl;
     return DB_FAILED;
   }
   // command buffer
   const int buf_size = 1024;
   char cmd[buf_size];
-  // 在读取所有命令前
   while (!file.eof()) {
     // read from buffer
-    InputCommand(cmd, buf_size,file);
+    memset(cmd ,0, buf_size);
+    cout<<"SQL:";
+    int i = 0;
+    char ch;
+    while (!file.eof() && (ch = file.get()) != ';') {
+        cmd[i++] = ch;
+    }
+    if (file.eof()){
+        memset(cmd,0,buf_size);
+        break;
+    }
+    cmd[i] = ch;
+    file.get();
     // 开始处理sql语句
     YY_BUFFER_STATE bp = yy_scan_string(cmd);
     if (bp == nullptr) {
-      LOG(ERROR) << "Failed to create yy buffer state." << std::endl;
+      LOG(ERROR) << "Buffer Failed" << std::endl;
       exit(1);
     }
     yy_switch_to_buffer(bp);
@@ -599,13 +577,6 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
     MinisqlParserInit();
     // parse
     yyparse();
-    // parse result handle
-    if (MinisqlParserGetError()) {
-      // error
-      printf("\n%s\n", MinisqlParserGetErrorMessage());
-    } else {
-     printf("\n[INFO] Sql syntax parse ok!\n");
-    }
     auto result = this->Execute(MinisqlGetParserRootNode());
     // clean memory after parse
     MinisqlParserFinish();
@@ -614,7 +585,7 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
     // quit condition
     this->ExecuteInformation(result);
     if (result == DB_QUIT) {
-      cout<<"Bye!"<<endl;
+      cout<<"Quit!"<<endl;
       break;
     }
   }
@@ -626,6 +597,5 @@ dberr_t ExecuteEngine::ExecuteQuit(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteQuit" << std::endl;
 #endif
-  ASSERT(ast->type_ == kNodeQuit, "Wrong Type");
  return DB_QUIT;
 }

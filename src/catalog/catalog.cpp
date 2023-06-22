@@ -210,8 +210,8 @@ dberr_t CatalogManager::GetIndex(const std::string &table_name, const std::strin
 /* 根据table_name，将对应所有的index的IndexInfo放到参数里面 */
 dberr_t CatalogManager::GetTableIndexes(const std::string &table_name, std::vector<IndexInfo *> &indexes) const {
   // 获取对应的table存放的Index情况
-  auto table_map_it = table_names_.find(table_name);
-  if (table_map_it == table_names_.end())
+  auto map = table_names_.find(table_name);
+  if (map == table_names_.end())
       return DB_TABLE_NOT_EXIST;
   // 获取对应的Index存放的情况并Push到indexes中
   if (index_names_.find(table_name) == index_names_.end()){// 该table没有对应的index
