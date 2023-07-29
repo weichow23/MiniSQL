@@ -5,15 +5,6 @@
    <center><font face="黑体" size =5>
    ——《数据库系统》大实验
   </font>
-  <center><font face="黑体" size = 3>
-    姓名： 周炜
-  </font>
-  <center><font face="黑体" size = 3>
-    学号： 3210103790
-  </font>
-  <center><font face="黑体" size = 3>
-    专业： 计算机科学与技术
-  </font>
 </center> 
 
 # 系统架构和概览
@@ -24,7 +15,7 @@
 - 在系统架构中，解释器`SQL Parser`在解析SQL语句后将生成的语法树交由执行器`Executor`处理。执行器则根据语法树的内容对相应的数据库实例（`DB Storage Engine Instance`）进行操作
 - 每个`DB Storage Engine Instance`对应了一个数据库实例（即通过`CREATE DATABSAE`创建的数据库）。在每个数据库实例中，用户可以定义若干表和索引，表和索引的信息通过`Catalog Manager`、`Index Manager`和`Record Manager`进行维护。目前系统架构中已经支持使用多个数据库实例，不同的数据库实例可以通过`USE`语句切换，在初步实现时，可以先考虑单个数据库实例的场景，在单个实例跑通后再支持多个实例
 
-<img src="zw01.png" style="zoom:60%;" />
+<img src="p01.png" style="zoom:60%;" />
 
 **索引定义**：对于表的主属性自动建立B+树索引，对于声明为`unique`的属性也需要建立B+树索引
 
@@ -91,7 +82,7 @@ Bitmap Page由两部分组成，一部分是用于加速Bitmap内部查找的元
 
 但是元数据所占用的数据页实际上是不存储数据库数据的,这就会导致物理页和逻辑页不匹配的问题，如下图:
 
-![](zw02.png)
+![](p02.png)
 
 因此需要通过函数`DiskManager::MapPageId(logical_page_id)`将逻辑页号转换成物理页号
 
@@ -105,7 +96,7 @@ Bitmap Page由两部分组成，一部分是用于加速Bitmap内部查找的元
 
 每个数据页一共设置3种状态，`USED` 和 `UNUSED` 以及`EMPTY`，如果数据没有使用过，则为`EMPTY`。对于初次加入的页面，设置为 `USED` ，在寻找待替换页面时，先遍历一遍 Replacer ，将 `USED` 设置为 `UNUSED` ，同时将待替换的页面设置为第一个遇到的 `UNUSED` 页面
 
-![](zw07.png)
+![](p07.png)
 
 在`buffer_pool+manager.cpp`中, 选择不同的策略，允许主程序`main.cpp`都能够正常运行，并且能够通过所有的测试
 
@@ -157,7 +148,7 @@ Buffer Pool Manager负责从Disk Manager中获取数据页并将它们存储在�
 
 `RowId`同时具有逻辑和物理意义，在物理意义上，它是一个64位整数，是每行记录的唯一标识；而在逻辑意义上，它的高32位存储的是该`RowId`对应记录所在数据页的`page_id`，低32位存储的是该`RowId`在`page_id`对应的数据页中对应的是第几条记录（详见#2.3.2）。`RowId`的作用主要体现在两个方面：一是在索引中，叶结点中存储的键值对是索引键`Key`到`RowId`的映射，通过索引键`Key`，沿着索引查找，我们能够得到该索引键对应记录的`RowId`，也就能够在堆表中定位到该记录；二是在堆表中，借助`RowId`中存储的逻辑信息（`page_id`和`slot_num`），可以快速地定位到其对应的记录位于物理文件的哪个位置
 
-<img src="zw03.png" style="zoom:60%;" />
+<img src="p03.png" style="zoom:60%;" />
 
 **插入**：采用了 First Fit 的策略，取出堆表的第一页尝试插入，如果已经不能插入（满了），那我们从缓冲池中取出新的一页，如果不能分配新的页，则插入返回失败，否则尝试插入，如此循环直到成功插入
 
@@ -195,7 +186,7 @@ class TablePage : public Page {
 
 叶结点`BPlusTreeLeafPage`存储实际的数据，它按照顺序存储![img](https://cdn.nlark.com/yuque/__latex/4760e2f007e23d820825ba241c47ce3b.svg)个键和![img](https://cdn.nlark.com/yuque/__latex/4760e2f007e23d820825ba241c47ce3b.svg)个值，其中键由一个或多个`Field`序列化得到，在`BPlusTreeLeafPage`类中用模板参数`KeyType`表示；值实际上存储的是`RowId`的值，它在`BPlusTreeLeafPage`类中用模板参数`ValueType`表示。叶结点和中间结点一样遵循着键值对数量的约束，同样也需要完成对应的合并、借用和分裂操作。
 
-<img src="zw04.png" style="zoom:80%;" />
+<img src="p04.png" style="zoom:80%;" />
 
 在操作过程中，B+树通过不断地`Fetchpage`从`buffer pool manager`处获取`Page`，同时`UnpinPage`并标记为脏以更新磁盘处的B+树数据。B+树索引中的节点大小应与缓冲区的数据页大小相同（为**4K**），B+树的叉数由节点大小与索引键大小计算得到
 
@@ -246,7 +237,7 @@ bool GetValue(const KeyType &key, std::vector<ValueType> &result, Transaction *t
 
 语法树中保存着命令执行需要的各种信息，根据信息和指令对于各项数据进行调用(下图对应`SQL`语句`select * from t1 where id = 1 and name = "str";`)
 
-<img src="zw06.png" style="zoom: 33%;" />
+<img src="p06.png" style="zoom: 33%;" />
 
 在遍历和获取上：
 
@@ -290,7 +281,7 @@ bool GetValue(const KeyType &key, std::vector<ValueType> &result, Transaction *t
 
 并且在验收时已经展示过把`b_plus_tree_test`的`n`从`30`开到`300`，可以正确通过
 
-> ![](zw10.png)
+> ![](p10.png)
 
 ### 验收命令
 
@@ -336,7 +327,7 @@ show databases;
 
 ### 插入速度
 
-![](zw17.png)
+![](p17.png)
 
 # 课程建议
 
@@ -375,25 +366,25 @@ C++ exception with description "std::exception" thrown in the test body
 
 > 再比如，比如这样神奇的错误会出在注释上（虽然可能是cion调试好像有些时候会出现跳行的操作）
 >
-> ![](zw08.png)
+> ![](p08.png)
 >
 > 当我给代码加上一个一个`LOG`之后，就莫名奇妙得通过了测试
 >
-> ![](zw09.png)
+> ![](p09.png)
 >
 > 还有一些另外的奇怪的问题（后来发现都是虚拟机的问题）
 >
 > [select之后莫名退出]
 >
-> ![](zw11.png)
+> ![](p11.png)
 >
 > [index==-1不成立，但是break了]
 >
-> ![](zw12.png)
+> ![](p12.png)
 >
 > [查询时现实内存分配失败]
 >
-> ![](zw13.png)
+> ![](p13.png)
 
 结果浪费了大量时间，可以通过test文件同级目录下手动建立`databases`文件夹，或者
 
